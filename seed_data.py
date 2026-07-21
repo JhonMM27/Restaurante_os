@@ -84,19 +84,23 @@ for cd in categorias_data:
 cat = {c.nombre: c for c in Categoria.objects.all()}
 
 platos_data = [
-    {'categoria': cat['Entradas'], 'nombre': 'Ceviche',       'precio_actual': 25.00, 'tiempo_preparacion_min': 10},
-    {'categoria': cat['Entradas'], 'nombre': 'Tequeños',      'precio_actual': 15.00, 'tiempo_preparacion_min': 12},
-    {'categoria': cat['Fondos'],   'nombre': 'Lomo Saltado',  'precio_actual': 35.00, 'tiempo_preparacion_min': 20},
-    {'categoria': cat['Fondos'],   'nombre': 'Aji de Gallina','precio_actual': 28.00, 'tiempo_preparacion_min': 18},
-    {'categoria': cat['Bebidas'],  'nombre': 'Inca Kola',     'precio_actual': 6.00,  'tiempo_preparacion_min': 2},
-    {'categoria': cat['Bebidas'],  'nombre': 'Pisco Sour',    'precio_actual': 18.00, 'tiempo_preparacion_min': 5},
+    {'categoria': cat['Entradas'], 'nombre': 'Ceviche',       'precio_actual': 25.00, 'tiempo_preparacion_min': 10, 'imagen': 'platos/ceviche.png'},
+    {'categoria': cat['Entradas'], 'nombre': 'Tequeños',      'precio_actual': 15.00, 'tiempo_preparacion_min': 12, 'imagen': 'platos/tequenos.png'},
+    {'categoria': cat['Fondos'],   'nombre': 'Lomo Saltado',  'precio_actual': 35.00, 'tiempo_preparacion_min': 20, 'imagen': 'platos/lomo_saltado.png'},
+    {'categoria': cat['Fondos'],   'nombre': 'Aji de Gallina','precio_actual': 28.00, 'tiempo_preparacion_min': 18, 'imagen': 'platos/aji_de_gallina.png'},
+    {'categoria': cat['Bebidas'],  'nombre': 'Inca Kola',     'precio_actual': 6.00,  'tiempo_preparacion_min': 2,  'imagen': 'platos/inca.png'},
+    {'categoria': cat['Bebidas'],  'nombre': 'Pisco Sour',    'precio_actual': 18.00, 'tiempo_preparacion_min': 5,  'imagen': 'platos/pisco.png'},
 ]
 for pd in platos_data:
-    Plato.objects.get_or_create(
+    plato, created = Plato.objects.get_or_create(
         nombre=pd['nombre'],
         categoria=pd['categoria'],
         defaults={**pd, 'disponible': True}
     )
+    if not plato.imagen and 'imagen' in pd:
+        plato.imagen = pd['imagen']
+        plato.save(update_fields=['imagen'])
+
 
 # ── 6. Misceláneos (UM y Métodos Pago) ───────────────────────────────────
 UM_data = [

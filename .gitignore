@@ -8,7 +8,8 @@ env/
 .env
 *.env
 db.sqlite3
-media/
+media/*
+!media/platos/
 staticfiles/
 *.log
 error_dump*.txt
