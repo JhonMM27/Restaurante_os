@@ -1,0 +1,155 @@
+{% load reservas_extras l10n %}
+
+<section class="border border-white/10 bg-[#11131b] p-5 sm:p-7">
+    <div class="mb-7 flex flex-wrap items-start justify-between gap-5 border-b border-white/10 pb-5">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.24em] text-secondary">Paso 03</p>
+            <h2 class="mt-2 text-2xl font-black text-white">Platos para la visita</h2>
+            <p class="mt-3 max-w-2xl text-sm leading-7 text-white/55">
+                Agrega los platos que deseas dejar preparados para tu reserva.
+            </p>
+        </div>
+        <span class="material-symbols-outlined text-[#f0c15a]">restaurant_menu</span>
+    </div>
+
+    <div class="space-y-8">
+        {% for categoria in categorias_menu %}
+        <div>
+            <div class="mb-4 flex items-center justify-between gap-4">
+                <h3 class="text-sm font-black uppercase tracking-[0.18em] text-white">{{ categoria.nombre }}</h3>
+                <span class="h-px flex-1 bg-white/10"></span>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+                {% for plato in categoria.platos.all %}
+                {% if plato.activo and plato.disponible %}
+                <article
+                    class="group overflow-hidden border border-white/10 bg-[#151720] transition duration-300 hover:-translate-y-1 hover:border-white/25 flex flex-col">
+                    <div class="relative aspect-[4/3] w-full overflow-hidden bg-[#10121a]">
+                        {% if plato.imagen_url %}
+                        <img src="{{ plato.imagen_url }}" alt="{{ plato.nombre }}"
+                            class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                        {% else %}
+                        <img src="/static/imagendelogin.png" alt="{{ plato.nombre }}"
+                            class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
+                        </div>
+                        <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4">
+                            <div>
+                                <p class="text-[11px] font-black uppercase tracking-[0.18em] text-white/70">
+                                    {{ categoria.nombre }}
+                                </p>
+                                <h4 class="mt-1 text-2xl font-black leading-tight text-white">{{ plato.nombre }}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex min-h-[132px] flex-col justify-between p-5 grow">
+                        {% if plato.descripcion %}
+                        <p class="text-sm leading-7 text-on-surface-variant">{{ plato.descripcion }}</p>
+                        {% else %}
+                        <p class="text-sm leading-7 text-on-surface-variant">
+                            Preparado al momento con sabor de casa y una presentación pensada para abrir el
+                            apetito.
+                        </p>
+                        {% endif %}
+
+                        <div class="mt-5 flex justify-between items-center w-full pt-4">
+                            <div class="flex items-center gap-4">
+                                <span class="text-[11px] font-black uppercase tracking-[0.2em] text-secondary">
+                                    Disponible
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 border border-white/20 bg-[#0a0b0f]">
+                                <button type="button"
+                                    class="w-10 h-11 flex items-center justify-center text-white/50 hover:text-white transition"
+                                    onclick="const i=document.getElementById('plato_{{ plato.id }}'); i.stepDown(); i.dispatchEvent(new Event('input'))">
+                                    <span class="material-symbols-outlined text-base">remove</span>
+                                </button>
+                                <input id="plato_{{ plato.id }}" type="number" name="plato_{{ plato.id }}" min="0"
+                                    max="99" value="{{ platos_cantidades|get_item:plato.id }}"
+                                    class="plato-qty h-11 w-12 bg-transparent border-0 text-center text-lg font-black text-white focus:ring-0 p-0"
+                                    style="-moz-appearance: textfield;"
+                                    data-precio="{{ plato.precio_actual|unlocalize }}"
+                                    data-nombre="{{ plato.nombre|escape }}">
+                                <button type="button"
+                                    class="w-10 h-11 flex items-center justify-center text-white/50 hover:text-white transition"
+                                    onclick="const i=document.getElementById('plato_{{ plato.id }}'); i.stepUp(); i.dispatchEvent(new Event('input'))">
+                                    <span class="material-symbols-outlined text-base">add</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% endif %}
+                {% empty %}
+                <div class="border border-white/10 bg-white/[0.035] p-4 text-sm italic text-white/45 md:col-span-2">
+                    No hay platos en esta categoría.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="border border-white/10 bg-white/[0.035] p-4 text-sm italic text-white/45">
+            No hay platos disponibles en el menú.
+        </div>
+        {% endfor %}
+    </div>
+
+    <div
+        class="mt-7 border border-secondary/25 bg-[linear-gradient(135deg,rgba(45,212,165,0.11),rgba(255,255,255,0.035))] p-5">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <p class="text-[11px] font-black uppercase tracking-[0.22em] text-white/45">Pedido estimado</p>
+                <p class="mt-2 text-sm text-white/62" id="reservaPedidoResumen">Sin platos seleccionados</p>
+            </div>
+            <p class="text-3xl font-black text-white" id="reservaPedidoTotal">S/ 0.00</p>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputs = document.querySelectorAll('.plato-qty');
+        const totalEl = document.getElementById('reservaPedidoTotal');
+        const resumenEl = document.getElementById('reservaPedidoResumen');
+
+        // Sync from localStorage cart
+        const cartStr = localStorage.getItem('ticuy_cart');
+        if (cartStr) {
+            try {
+                const cartItems = JSON.parse(cartStr);
+                cartItems.forEach(item => {
+                    const input = document.getElementById(`plato_${item.id}`);
+                    // Only override if input is currently 0 or empty (so we don't erase POST data after validation errors)
+                    if (input && (!input.value || parseInt(input.value) === 0)) {
+                        input.value = item.cantidad;
+                    }
+                });
+            } catch (e) { }
+        }
+
+        function actualizarResumenPedido() {
+            let total = 0;
+            const items = [];
+            inputs.forEach(function (input) {
+                const qty = parseInt(input.value, 10) || 0;
+                if (qty > 0) {
+                    const precio = parseFloat(input.dataset.precio) || 0;
+                    total += qty * precio;
+                    items.push(`${qty}x ${input.dataset.nombre}`);
+                }
+            });
+            totalEl.textContent = `S/ ${total.toFixed(2)}`;
+            resumenEl.textContent = items.length ? items.join(', ') : 'Sin platos seleccionados';
+        }
+
+        inputs.forEach(function (input) {
+            input.addEventListener('input', actualizarResumenPedido);
+            input.addEventListener('change', actualizarResumenPedido);
+        });
+        actualizarResumenPedido();
+    });
+</script>

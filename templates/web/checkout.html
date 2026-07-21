@@ -1,0 +1,290 @@
+{% extends "web/base_publica.html" %}
+
+{% block title %}Finalizar Pedido - TICUY{% endblock %}
+
+{% block content %}
+<div class="bg-[#0a0b0f] text-white" x-data="checkoutProcess()">
+    <section class="relative overflow-hidden border-b border-white/10">
+        <img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&q=90&w=1800"
+            alt="Mesa lista para confirmar pedido TICUY" class="absolute inset-0 h-full w-full object-cover">
+        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.92),rgba(0,0,0,0.56),rgba(0,0,0,0.84))]"></div>
+
+        <div class="relative z-10 mx-auto flex min-h-[42vh] max-w-7xl items-end px-4 pb-12 pt-24 sm:px-6 lg:px-8">
+            <div class="max-w-3xl">
+                <a href="{% url 'clientes:carrito' %}"
+                    class="mb-8 inline-flex w-fit items-center gap-2 border border-white/15 bg-white/[0.06] px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/80 transition hover:border-secondary hover:text-white">
+                    <span class="material-symbols-outlined text-base">arrow_back</span>
+                    Volver al carrito
+                </a>
+                <p class="text-xs font-black uppercase tracking-[0.34em] text-secondary">Checkout TICUY</p>
+                <h1 class="mt-5 font-['Plus_Jakarta_Sans'] text-5xl font-black leading-tight sm:text-7xl">
+                    Confirma tu pedido.
+                </h1>
+                <p class="mt-6 max-w-2xl text-lg leading-8 text-white/76">
+                    Completa tus datos, elige cómo recibir tu pedido y envíalo a cocina.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-7xl px-4 py-12 pb-24 sm:px-6 lg:px-8">
+        <template x-if="items.length === 0 && !success">
+            <div class="mx-auto max-w-2xl border border-dashed border-white/15 bg-[#11131b] p-8 text-center sm:p-12">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center border border-white/10 bg-white/[0.04]">
+                    <span class="material-symbols-outlined text-3xl text-white/45">shopping_cart_checkout</span>
+                </div>
+                <p class="mt-6 text-[11px] font-black uppercase tracking-[0.24em] text-secondary">Sin productos</p>
+                <h2 class="mt-3 text-3xl font-black text-white">Tu pedido todavía está vacío.</h2>
+                <p class="mt-4 text-sm leading-7 text-white/55">
+                    Agrega platos desde la carta para poder confirmar tu compra.
+                </p>
+                <a href="{% url 'clientes:menu' %}"
+                    class="btn-primary mt-7 inline-flex min-h-12 items-center justify-center gap-2 px-7 text-xs font-black uppercase tracking-[0.16em]">
+                    Ver carta
+                    <span class="material-symbols-outlined text-base">restaurant_menu</span>
+                </a>
+            </div>
+        </template>
+
+        <template x-if="success">
+            <div class="mx-auto max-w-3xl border border-secondary/25 bg-[#11131b] p-8 text-center shadow-[0_30px_90px_rgba(45,212,165,0.09)] sm:p-12">
+                <div class="mx-auto flex h-20 w-20 items-center justify-center border border-secondary/30 bg-secondary/10">
+                    <span class="material-symbols-outlined text-4xl text-secondary">check_circle</span>
+                </div>
+                <p class="mt-7 text-[11px] font-black uppercase tracking-[0.24em] text-secondary">Pedido enviado</p>
+                <h2 class="mt-3 text-4xl font-black text-white">Tu pedido fue confirmado.</h2>
+                <p class="mx-auto mt-4 max-w-xl text-sm leading-7 text-white/58">
+                    Hemos recibido tu orden correctamente. El equipo TICUY la revisará para continuar con la atención.
+                </p>
+                <div class="mt-8 flex flex-wrap justify-center gap-3">
+                    <a href="{% url 'clientes:menu' %}"
+                        class="inline-flex min-h-12 items-center justify-center gap-2 border border-white/15 bg-white/[0.04] px-6 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:border-white/30">
+                        Ver carta
+                    </a>
+                    <a href="{% url 'clientes:mis_reservas' %}"
+                        class="btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-6 text-xs font-black uppercase tracking-[0.16em]">
+                        Ver mi cuenta
+                        <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+        </template>
+
+        <template x-if="items.length > 0 && !success">
+            <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+                <div class="space-y-8">
+                    <section class="border border-white/10 bg-[#11131b] p-5 sm:p-7">
+                        <div class="mb-7 flex items-start justify-between gap-5 border-b border-white/10 pb-5">
+                            <div>
+                                <p class="text-[11px] font-black uppercase tracking-[0.24em] text-secondary">Paso 01</p>
+                                <h2 class="mt-2 text-2xl font-black text-white">Tus datos</h2>
+                            </div>
+                            <span class="material-symbols-outlined text-primary">person</span>
+                        </div>
+
+                        {% if cliente %}
+                        <div class="border border-white/10 bg-white/[0.035] p-4" data-checkout-client="registered">
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Comprando como</p>
+                            <p class="mt-2 text-xl font-black text-white">{{ cliente.nombres }} {{ cliente.apellidos }}</p>
+                        </div>
+                        {% else %}
+                        <label class="block">
+                            <span class="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/50">Nombre completo *</span>
+                            <input type="text" x-model="nombreCliente"
+                                class="h-14 w-full border border-white/14 bg-white/[0.055] px-4 text-sm font-bold text-white outline-none transition placeholder:text-white/34 focus:border-secondary focus:bg-white/[0.08] focus:ring-2 focus:ring-secondary/20"
+                                placeholder="Ingresa tus nombres y apellidos" required>
+                        </label>
+                        {% endif %}
+                    </section>
+
+                    <section class="border border-white/10 bg-[#11131b] p-5 sm:p-7">
+                        <div class="mb-7 flex items-start justify-between gap-5 border-b border-white/10 pb-5">
+                            <div>
+                                <p class="text-[11px] font-black uppercase tracking-[0.24em] text-secondary">Paso 02</p>
+                                <h2 class="mt-2 text-2xl font-black text-white">Tipo de pedido</h2>
+                            </div>
+                            <span class="material-symbols-outlined text-secondary">local_shipping</span>
+                        </div>
+
+                        <div class="grid gap-4 md:grid-cols-3">
+                            <label class="group cursor-pointer border p-5 transition"
+                                :class="tipoPedido === 'LOCAL' ? 'border-secondary bg-secondary/10' : 'border-white/10 bg-white/[0.035] hover:border-white/25'">
+                                <input type="radio" name="tipo_pedido" value="LOCAL" x-model="tipoPedido" class="sr-only">
+                                <span class="material-symbols-outlined text-3xl"
+                                    :class="tipoPedido === 'LOCAL' ? 'text-secondary' : 'text-white/45'">restaurant</span>
+                                <span class="mt-5 block text-sm font-black text-white">Consumir en local</span>
+                                <span class="mt-2 block text-xs leading-5 text-white/45">Tu pedido se atiende en mesa.</span>
+                            </label>
+
+                            <label class="group cursor-pointer border p-5 transition"
+                                :class="tipoPedido === 'RECOJO' ? 'border-secondary bg-secondary/10' : 'border-white/10 bg-white/[0.035] hover:border-white/25'">
+                                <input type="radio" name="tipo_pedido" value="RECOJO" x-model="tipoPedido" class="sr-only">
+                                <span class="material-symbols-outlined text-3xl"
+                                    :class="tipoPedido === 'RECOJO' ? 'text-secondary' : 'text-white/45'">takeout_dining</span>
+                                <span class="mt-5 block text-sm font-black text-white">Recojo en tienda</span>
+                                <span class="mt-2 block text-xs leading-5 text-white/45">Listo para pasar por el local.</span>
+                            </label>
+
+                            <label class="group cursor-pointer border p-5 transition"
+                                :class="tipoPedido === 'DELIVERY' ? 'border-secondary bg-secondary/10' : 'border-white/10 bg-white/[0.035] hover:border-white/25'">
+                                <input type="radio" name="tipo_pedido" value="DELIVERY" x-model="tipoPedido" class="sr-only">
+                                <span class="material-symbols-outlined text-3xl"
+                                    :class="tipoPedido === 'DELIVERY' ? 'text-secondary' : 'text-white/45'">moped</span>
+                                <span class="mt-5 block text-sm font-black text-white">Delivery</span>
+                                <span class="mt-2 block text-xs leading-5 text-white/45">Indica dirección en detalles.</span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="border border-white/10 bg-[#11131b] p-5 sm:p-7">
+                        <div class="mb-7 flex items-start justify-between gap-5 border-b border-white/10 pb-5">
+                            <div>
+                                <p class="text-[11px] font-black uppercase tracking-[0.24em] text-secondary">Paso 03</p>
+                                <h2 class="mt-2 text-2xl font-black text-white">Detalles adicionales</h2>
+                            </div>
+                            <span class="material-symbols-outlined text-[#f0c15a]">edit_note</span>
+                        </div>
+
+                        <textarea x-model="observaciones" rows="5"
+                            class="min-h-[150px] w-full resize-y border border-white/14 bg-white/[0.055] p-4 text-sm font-semibold leading-7 text-white outline-none transition placeholder:text-white/34 focus:border-secondary focus:bg-white/[0.08] focus:ring-2 focus:ring-secondary/20"
+                            :placeholder="tipoPedido === 'DELIVERY' ? 'Dirección, referencia y detalles del pedido...' : 'Ej: Sin cebolla, punto de cocción, hora aproximada o indicaciones...'"></textarea>
+                    </section>
+                </div>
+
+                <aside class="lg:sticky lg:top-24">
+                    <div class="border border-white/10 bg-[#11131b] p-5">
+                        <p class="text-[11px] font-black uppercase tracking-[0.24em] text-[#f0c15a]">Resumen</p>
+                        <h2 class="mt-2 text-2xl font-black text-white">Tu pedido</h2>
+                        <p class="mt-4 text-sm leading-7 text-white/55">
+                            Verifica productos y total antes de enviar.
+                        </p>
+
+                        <div class="my-6 max-h-[280px] space-y-3 overflow-auto border-y border-white/10 py-5">
+                            <template x-for="item in items" :key="item.id">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-black text-white" x-text="item.nombre"></p>
+                                        <p class="mt-1 text-xs text-white/42">
+                                            <span x-text="item.cantidad"></span> x S/ <span x-text="formatMoney(item.precio)"></span>
+                                        </p>
+                                    </div>
+                                    <p class="shrink-0 text-sm font-black text-white">S/ <span x-text="lineTotal(item)"></span></p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="space-y-4 text-sm">
+                            <div class="flex items-center justify-between gap-4">
+                                <span class="text-white/45">Productos</span>
+                                <span class="font-black text-white" x-text="itemCount"></span>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <span class="text-white/45">Tipo</span>
+                                <span class="font-black text-secondary" x-text="tipoPedidoLabel()"></span>
+                            </div>
+                        </div>
+
+                        <div class="my-6 border-t border-white/10 pt-5">
+                            <div class="flex items-end justify-between gap-4">
+                                <span class="text-lg font-black text-white">Total a pagar</span>
+                                <span class="text-3xl font-black text-secondary">S/ <span x-text="cartTotal"></span></span>
+                            </div>
+                        </div>
+
+                        <template x-if="errorMsg">
+                            <div class="mb-5 flex items-start gap-3 border border-red-400/35 bg-red-500/12 p-4 text-sm text-red-100">
+                                <span class="material-symbols-outlined text-red-300">error</span>
+                                <span x-text="errorMsg"></span>
+                            </div>
+                        </template>
+
+                        <button type="button" @click="submitOrder" :disabled="loading"
+                            class="btn-primary inline-flex min-h-12 w-full items-center justify-center gap-2 px-5 text-xs font-black uppercase tracking-[0.16em] disabled:cursor-not-allowed disabled:opacity-55">
+                            <span x-show="!loading">Confirmar pedido</span>
+                            <span x-show="loading" class="material-symbols-outlined animate-spin text-xl">progress_activity</span>
+                            <span x-show="!loading" class="material-symbols-outlined text-base">arrow_forward</span>
+                        </button>
+
+                        <a href="{% url 'clientes:carrito' %}"
+                            class="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 border border-white/15 bg-white/[0.04] px-5 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:border-white/30 hover:bg-white/[0.08]">
+                            Editar carrito
+                        </a>
+                    </div>
+                </aside>
+            </div>
+        </template>
+    </section>
+</div>
+
+<script>
+    function checkoutProcess() {
+        return {
+            tipoPedido: 'RECOJO',
+            observaciones: '',
+            nombreCliente: '',
+            loading: false,
+            errorMsg: '',
+            success: false,
+
+            tipoPedidoLabel() {
+                const labels = {
+                    LOCAL: 'Local',
+                    RECOJO: 'Recojo',
+                    DELIVERY: 'Delivery'
+                };
+                return labels[this.tipoPedido] || 'Recojo';
+            },
+
+            async submitOrder() {
+                if (this.loading) return;
+                this.loading = true;
+                this.errorMsg = '';
+
+                const payload = {
+                    items: this.items.map(i => ({ plato_id: i.id, cantidad: parseInt(i.cantidad) })),
+                    tipo_pedido: this.tipoPedido,
+                    observaciones: this.observaciones,
+                    nombre_cliente: this.nombreCliente
+                };
+
+                const hasClienteInfo = document.querySelector('[data-checkout-client="registered"]') !== null;
+                if (!hasClienteInfo && (!this.nombreCliente || this.nombreCliente.trim().length <= 2)) {
+                    this.errorMsg = "Ingresa tu nombre completo para confirmar el pedido.";
+                    this.loading = false;
+                    return;
+                }
+
+                if (this.tipoPedido === 'DELIVERY' && (!this.observaciones || this.observaciones.trim().length <= 6)) {
+                    this.errorMsg = "Para delivery, agrega dirección o referencia en detalles adicionales.";
+                    this.loading = false;
+                    return;
+                }
+
+                try {
+                    const res = await fetch("{% url 'api_crear_pedido_web' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await res.json();
+
+                    if (!result.ok) {
+                        this.errorMsg = result.error || "Ocurrió un error al procesar el pedido.";
+                    } else {
+                        this.success = true;
+                        this.items = [];
+                    }
+                } catch (e) {
+                    this.errorMsg = "Error de conexión. Intente nuevamente.";
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}
